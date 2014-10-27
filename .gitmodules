@@ -1,0 +1,3 @@
+[submodule "beacon-eggs-core"]
+	path = beacon-eggs-core
+	url = git@bitbucket.org:beaconeggs/beacon-eggs-core.git
