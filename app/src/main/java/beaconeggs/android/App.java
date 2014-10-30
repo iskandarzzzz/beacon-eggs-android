@@ -9,6 +9,6 @@ import beaconeggs.android.editorModel.EditorLayout;
  */
 public class App extends Application {
 
-    public static EditorLayout editorLayout;
+    public EditorLayout editorLayout;
 
 }

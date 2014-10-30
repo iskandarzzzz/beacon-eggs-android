@@ -1,5 +1,7 @@
 package beaconeggs.android.service;
 
+import android.util.Log;
+
 import com.estimote.sdk.Beacon;
 import com.estimote.sdk.Utils;
 
@@ -18,10 +20,13 @@ class Executor {
     private Queue<List<Beacon>> queue;
     private boolean isExecuting = false;
     private ResolutionSelector resolutionSelector;
+    private App app;
     private ExecutorListener executorListener;
+    private List<EditorWidget> editorWidgets;
 
-    public Executor(ResolutionSelector resolutionSelector) {
+    public Executor(ResolutionSelector resolutionSelector, App app) {
         this.resolutionSelector = resolutionSelector;
+        this.app = app;
 
         queue = new LinkedList<List<Beacon>>();
     }
@@ -31,8 +36,20 @@ class Executor {
     }
 
     public void addJob(List<Beacon> beacons) {
+        if (beacons.isEmpty())
+            return;
+
         queue.add(beacons);
-        execute();
+
+        // only execute when we have retrieved editor data
+        if (editorWidgets == null) {
+            editorWidgets = app.editorLayout.getEditorWidgets();
+            if (editorWidgets != null) {
+                execute();
+            }
+        } else {
+            execute();
+        }
     }
 
     private void execute() {
@@ -45,12 +62,17 @@ class Executor {
 
             List<LayoutBeacon> layoutBeacons = processBeacons(beacons);
             ResolutionType type = resolutionSelector.selectType(layoutBeacons);
-            ComputedPoint computedPoint = type.compute();
 
-            resolutionSelector.addComputedPoint(computedPoint);
-            if (executorListener != null) {
-                executorListener.onExecute(computedPoint);
+            if (type != null) {
+                ComputedPoint computedPoint = type.compute();
+                Log.d("+++++++++++++++++++", "computedPoint: " + computedPoint);
+
+                resolutionSelector.addComputedPoint(computedPoint);
+                if (executorListener != null) {
+                    executorListener.onExecute(computedPoint);
+                }
             }
+
         }
         isExecuting = false;
     }
@@ -76,7 +98,6 @@ class Executor {
      * @return
      */
     private LayoutBeacon makeLayoutBeacon(Beacon beacon) {
-        List<EditorWidget> editorWidgets = App.editorLayout.getEditorWidgets();
         LayoutBeacon layoutBeacon = null;
 
         for (EditorWidget editorWidget : editorWidgets) {
@@ -88,10 +109,10 @@ class Executor {
                 int major = editorBeacon.getMajor();
                 int minor = editorBeacon.getMinor();
 
-                boolean sameBeacon = (uuid == beacon.getProximityUUID() && major == beacon.getMajor() && minor == beacon.getMinor());
+                boolean sameBeacon = (beacon.getProximityUUID().equalsIgnoreCase(uuid) && beacon.getMajor() == major && beacon.getMinor() == minor);
                 if (sameBeacon) {
                     double distance = Utils.computeAccuracy(beacon);
-
+                    Log.d("==================", "distance:" + distance);
                     layoutBeacon = new LayoutBeacon(beacon, editorBeacon.getPos(), editorBeacon.getRadius(), distance);
                 }
             }

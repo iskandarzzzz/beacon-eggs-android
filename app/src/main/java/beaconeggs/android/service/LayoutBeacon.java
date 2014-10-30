@@ -49,14 +49,19 @@ class LayoutBeacon {
         return radius;
     }
 
+    @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append('\n')
-                .append("radius").append('\t').append(radius).append('\n')
-                .append("uuid").append('\t').append(uuid).append('\n')
-                .append("distance").append('\t').append(distance).append('\n')
-                .append("pos").append('\t').append(pos).append('\n');
-
-        return sb.toString();
+        return "LayoutBeacon{" +
+                "uuid='" + uuid + '\'' +
+                ", major=" + major +
+                ", minor=" + minor +
+                ", name='" + name + '\'' +
+                ", macAddress='" + macAddress + '\'' +
+                ", measuredPower=" + measuredPower +
+                ", rssi=" + rssi +
+                ", pos=" + pos +
+                ", radius=" + radius +
+                ", distance=" + distance +
+                '}';
     }
 }

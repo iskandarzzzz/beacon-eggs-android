@@ -16,11 +16,16 @@ class ResolutionSelector {
     private Class<ResolutionType> forcedType = null;
 
     public ResolutionType selectType(List<LayoutBeacon> beacons) {
+        // TODO: force return type
         if (forcedType != null) {
             return null;
         }
 
-        return new ThreeBorderN(computePoints(beacons), computeDistances(beacons));
+        if (beacons.size() >= 3) {
+            return new ThreeBorderN(computePoints(beacons), computeDistances(beacons));
+        }
+
+        return null;
     }
 
     private List<Point> computePoints(List<LayoutBeacon> beacons) {
