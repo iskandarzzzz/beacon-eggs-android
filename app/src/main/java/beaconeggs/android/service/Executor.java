@@ -71,6 +71,9 @@ class Executor {
                 if (executorListener != null) {
                     executorListener.onExecute(computedPoint);
                 }
+
+                // send position to server
+                RestClient.postPosition(computedPoint);
             }
 
         }
