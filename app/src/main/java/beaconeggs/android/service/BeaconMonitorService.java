@@ -10,24 +10,14 @@ import android.util.Log;
 import com.estimote.sdk.Beacon;
 import com.estimote.sdk.BeaconManager;
 import com.estimote.sdk.Region;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import com.loopj.android.http.TextHttpResponseHandler;
 
-import org.apache.http.Header;
-
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
 import beaconeggs.android.App;
-import beaconeggs.android.editorModel.EditorLayout;
-import beaconeggs.android.editorModel.EditorWidget;
-import beaconeggs.android.editorModel.EditorWidgetAdapter;
 
 public class BeaconMonitorService extends Service {
 
+    public static final int DEFAULT_FOREGROUND_SCAN_PERIOD = 500;
     private static final String TAG = BeaconMonitorService.class.getSimpleName();
     private static final String ESTIMOTE_PROXIMITY_UUID = "B9407F30-F5F8-466E-AFF9-25556B57FE6D";
     private static final Region ALL_ESTIMOTE_BEACONS = new Region("regionId", ESTIMOTE_PROXIMITY_UUID, null, null);
@@ -46,11 +36,9 @@ public class BeaconMonitorService extends Service {
         executor = new Executor(resolutionSelector, app);
         beaconManager = new BeaconManager(this);
 
-        final Gson gson = new GsonBuilder().registerTypeAdapter(EditorWidget.class, new EditorWidgetAdapter()).setPrettyPrinting().create();
-
         // Set scan period
 //        beaconManager.setBackgroundScanPeriod(10000, 0);
-        beaconManager.setForegroundScanPeriod(1000, 0);
+        beaconManager.setForegroundScanPeriod(app.foregroundScanPeriod, 0);
 
         // Set listener
         beaconManager.setRangingListener(new BeaconManager.RangingListener() {
@@ -61,47 +49,7 @@ public class BeaconMonitorService extends Service {
             }
         });
 
-        RestClient.getLayouts(new TextHttpResponseHandler() {
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-            }
-
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                Type type = new TypeToken<ArrayList<EditorLayout>>() {
-                }.getType();
-
-                List<EditorLayout> editorLayouts = gson.fromJson(responseString, type);
-                // TODO: for testing purpose use only the first layout
-                app.editorLayout = editorLayouts.get(0);
-
-                Log.d(TAG, responseString);
-                Log.d(TAG, gson.toJson(editorLayouts));
-
-                connectBeaconService();
-            }
-        });
-
-//        RestClient.getBeacons(new AsyncHttpResponseHandler() {
-//            @Override
-//            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-//                Type type = new TypeToken<ArrayList<LayoutBeacon>>() {
-//                }.getType();
-//
-//                List<LayoutBeacon> layoutBeacons = gson.fromJson(new String(responseBody), type);
-//
-//                Log.d(TAG, new String(responseBody));
-//                Log.d(TAG, "" + layoutBeacons.size());
-//                Log.d(TAG, layoutBeacons.toString());
-//                Log.d(TAG, "" + layoutBeacons.get(0).getUuid());
-//            }
-//
-//            @Override
-//            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-//                Log.d(TAG, "Status !!" + statusCode);
-//                Log.d(TAG, "FAILURE !!");
-//            }
-//        });
+        connectBeaconService();
     }
 
     private void connectBeaconService() {

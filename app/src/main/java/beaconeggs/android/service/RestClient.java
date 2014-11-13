@@ -2,11 +2,14 @@ package beaconeggs.android.service;
 
 import android.util.Log;
 
+import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import org.apache.http.Header;
+
+import java.util.HashMap;
 
 import beaconeggs.core.Point;
 
@@ -18,6 +21,7 @@ public class RestClient {
     private static final String BASE_URL = "http://beacon.egg.ovh/api";
 
     private static final AsyncHttpClient client = new AsyncHttpClient();
+    private static final Gson gson = new Gson();
 
     public static void getBeacons(AsyncHttpResponseHandler handler) {
         client.get(BASE_URL + "/beacon", handler);
@@ -27,10 +31,11 @@ public class RestClient {
         client.get(BASE_URL + "/layout", handler);
     }
 
-    public static void postPosition(Point point) {
+    public static void postPosition(Point point, HashMap<Integer, Double> distancesToSend) {
         RequestParams params = new RequestParams();
         params.put("x", point.getX());
         params.put("y", point.getY());
+        params.put("distances", gson.toJson(distancesToSend));
 
         client.post(BASE_URL + "/user", params, new AsyncHttpResponseHandler() {
             @Override

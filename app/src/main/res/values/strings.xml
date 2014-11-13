@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">Beacon &amp; Eggs</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="computed_position">Computed position</string>
     <string name="action_settings">Settings</string>
 
 </resources>

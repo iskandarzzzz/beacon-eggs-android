@@ -4,10 +4,13 @@ import android.util.Log;
 
 import com.estimote.sdk.Beacon;
 import com.estimote.sdk.Utils;
+import com.google.common.collect.EvictingQueue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 import beaconeggs.android.App;
@@ -24,11 +27,17 @@ class Executor {
     private ExecutorListener executorListener;
     private List<EditorWidget> editorWidgets;
 
+    // key: beacon minor
+    // value: history of distances
+    private HashMap<Integer, EvictingQueue<Double>> distanceHistory;
+
     public Executor(ResolutionSelector resolutionSelector, App app) {
         this.resolutionSelector = resolutionSelector;
         this.app = app;
 
         queue = new LinkedList<List<Beacon>>();
+
+        distanceHistory = new HashMap<Integer, EvictingQueue<Double>>();
     }
 
     public void setExecutorListener(ExecutorListener executorListener) {
@@ -72,8 +81,16 @@ class Executor {
                     executorListener.onExecute(computedPoint);
                 }
 
+                HashMap<Integer, Double> distancesToSend = new HashMap<Integer, Double>();
+                for (Map.Entry<Integer, EvictingQueue<Double>> evictingQueueEntry : distanceHistory.entrySet()) {
+                    Integer key = evictingQueueEntry.getKey();
+                    double avg = computeAvgDistance(key);
+
+                    distancesToSend.put(key, avg);
+                }
+
                 // send position to server
-                RestClient.postPosition(computedPoint);
+                RestClient.postPosition(computedPoint, distancesToSend);
             }
 
         }
@@ -83,13 +100,58 @@ class Executor {
     private List<LayoutBeacon> processBeacons(List<Beacon> beacons) {
         List<LayoutBeacon> layoutBeacons = new ArrayList<LayoutBeacon>(beacons.size());
 
+        String distancesString = "";
+        String avgDistancesString = "";
         for (Beacon beacon : beacons) {
-            LayoutBeacon layoutBeacon = makeLayoutBeacon(beacon);
+            double distance = Utils.computeAccuracy(beacon);
+            addDistanceToHistory(beacon.getMinor(), distance);
+
+            double avgDistance = computeAvgDistance(beacon.getMinor());
+
+            // prepare distance string
+            distancesString += beacon.getMinor() + " distance:" + distance + "\n";
+            avgDistancesString += beacon.getMinor() + " avgDistance:" + avgDistance + "\n";
+
+            LayoutBeacon layoutBeacon = makeLayoutBeacon(beacon, avgDistance);
             if (layoutBeacon != null)
                 layoutBeacons.add(layoutBeacon);
         }
 
+        // show distances on activity
+        executorListener.onDistance(distancesString);
+        executorListener.onProcessedDistance(avgDistancesString);
+
         return layoutBeacons;
+    }
+
+    private double computeAvgDistance(int minor) {
+        EvictingQueue<Double> distances = distanceHistory.get(minor);
+
+        double avgDistance = 0;
+        for (Double distance : distances) {
+            avgDistance += distance;
+        }
+        avgDistance /= distances.size();
+
+        return avgDistance;
+    }
+
+    /**
+     * Put the new estimate distance into a list
+     * replacing the oldest value if the list is full
+     *
+     * @param minor
+     * @param distance
+     */
+    private void addDistanceToHistory(int minor, double distance) {
+        boolean containsKey = distanceHistory.containsKey(minor);
+
+        if (!containsKey) {
+            EvictingQueue<Double> distances = EvictingQueue.create(10);
+            distanceHistory.put(minor, distances);
+        }
+
+        distanceHistory.get(minor).add(distance);
     }
 
     /**
@@ -98,9 +160,10 @@ class Executor {
      * else null
      *
      * @param beacon
+     * @param distance
      * @return
      */
-    private LayoutBeacon makeLayoutBeacon(Beacon beacon) {
+    private LayoutBeacon makeLayoutBeacon(Beacon beacon, double distance) {
         LayoutBeacon layoutBeacon = null;
 
         for (EditorWidget editorWidget : editorWidgets) {
@@ -114,8 +177,7 @@ class Executor {
 
                 boolean sameBeacon = (beacon.getProximityUUID().equalsIgnoreCase(uuid) && beacon.getMajor() == major && beacon.getMinor() == minor);
                 if (sameBeacon) {
-                    double distance = Utils.computeAccuracy(beacon);
-                    Log.d("==================", "distance:" + distance);
+//                    Log.d("==================", "distance:" + distance);
                     layoutBeacon = new LayoutBeacon(beacon, editorBeacon.getPos(), editorBeacon.getRadius(), distance);
                 }
             }
