@@ -6,7 +6,7 @@ An Android application implementing positioning algorithms using [Beacon & Eggs 
 ## IDE Setup
 
 * Download and install *Android Studio* from [here](https://developer.android.com/sdk/installing/studio.html)
-* Open project
+* Open project (do not use import)
 
 
 ## Project Architecture
