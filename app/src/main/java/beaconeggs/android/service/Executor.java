@@ -178,7 +178,7 @@ class Executor {
                 boolean sameBeacon = (beacon.getProximityUUID().equalsIgnoreCase(uuid) && beacon.getMajor() == major && beacon.getMinor() == minor);
                 if (sameBeacon) {
 //                    Log.d("==================", "distance:" + distance);
-                    layoutBeacon = new LayoutBeacon(beacon, editorBeacon.getPos(), editorBeacon.getRadius(), distance);
+                    layoutBeacon = new LayoutBeacon(beacon, editorBeacon.getPos(app.editorLayout.getPxPerMeter()), editorBeacon.getRadius() / app.editorLayout.getPxPerMeter(), distance);
                 }
             }
         }

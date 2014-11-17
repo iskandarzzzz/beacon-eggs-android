@@ -33,4 +33,14 @@ public abstract class EditorWidget {
     public Point getPos() {
         return new Point(x, y);
     }
+
+    /**
+     * Position of the Widget but apply an unit conversion
+     *
+     * @param pxPerMeter
+     * @return
+     */
+    public Point getPos(int pxPerMeter) {
+        return new Point(x / pxPerMeter, y / pxPerMeter);
+    }
 }

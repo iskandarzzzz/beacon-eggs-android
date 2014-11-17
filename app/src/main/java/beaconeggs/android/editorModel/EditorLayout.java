@@ -9,6 +9,7 @@ public class EditorLayout {
 
     private String name;
     private List<EditorWidget> widgets;
+    private int pxPerMeter;
 
     public String getName() {
         return name;
@@ -24,5 +25,9 @@ public class EditorLayout {
                 .append("name").append('\t').append(name).append('\n')
                 .append("wdgets").append('\t').append(widgets).append('\n');
         return sb.toString();
+    }
+
+    public int getPxPerMeter() {
+        return pxPerMeter;
     }
 }
