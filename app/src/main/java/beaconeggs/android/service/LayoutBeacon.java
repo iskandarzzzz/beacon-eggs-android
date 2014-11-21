@@ -64,4 +64,8 @@ class LayoutBeacon {
                 ", distance=" + distance +
                 '}';
     }
+
+    public int getMinor() {
+        return minor;
+    }
 }
