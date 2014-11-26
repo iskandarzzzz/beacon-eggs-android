@@ -56,7 +56,7 @@ class Executor {
             return;
 
         isExecuting = true;
-        List<Beacon> beacons = beaconHistory.getBeacons(BeaconHistory.FilterMethod.Median);
+        List<Beacon> beacons = beaconHistory.getBeacons(app.filterMethod);
 
         List<LayoutBeacon> layoutBeacons = processBeacons(beacons);
         ResolutionType type = resolutionSelector.selectType(layoutBeacons);

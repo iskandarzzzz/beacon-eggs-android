@@ -31,6 +31,7 @@ import java.util.List;
 import beaconeggs.android.editorModel.EditorLayout;
 import beaconeggs.android.editorModel.EditorWidget;
 import beaconeggs.android.editorModel.EditorWidgetAdapter;
+import beaconeggs.android.service.BeaconHistory;
 import beaconeggs.android.service.BeaconMonitorService;
 import beaconeggs.android.service.ExecutorListener;
 import beaconeggs.android.service.RestClient;
@@ -76,6 +77,7 @@ public class Home extends BaseActivity {
     private TextView distances;
     private TextView processedDistances;
     private Spinner layouts;
+    private Spinner filter_method;
     private NumberPicker foregroundScanPeriod;
     private Switch switch_start;
 
@@ -89,6 +91,7 @@ public class Home extends BaseActivity {
         distances = (TextView) findViewById(R.id.distances);
         processedDistances = (TextView) findViewById(R.id.processedDistances);
         layouts = (Spinner) findViewById(R.id.layouts);
+        filter_method = (Spinner) findViewById(R.id.filter_method);
         foregroundScanPeriod = (NumberPicker) findViewById(R.id.foreground_scan_period);
         switch_start = (Switch) findViewById(R.id.switch_start);
 
@@ -104,6 +107,19 @@ public class Home extends BaseActivity {
 
             }
         });
+        filter_method.setAdapter(new FilterMethodSpinnerAdapter(this));
+        filter_method.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                app.filterMethod = BeaconHistory.FilterMethod.values()[i];
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+        filter_method.setSelection(BeaconHistory.FilterMethod.WAverage.ordinal(), true);
         foregroundScanPeriod.setMinValue(50);
         foregroundScanPeriod.setMaxValue(60 * 1000);
         foregroundScanPeriod.setValue(BeaconMonitorService.DEFAULT_FOREGROUND_SCAN_PERIOD);

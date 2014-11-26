@@ -10,6 +10,6 @@ import java.util.List;
  */
 public class LayoutsSpinnerAdapter extends ArrayAdapter {
     public LayoutsSpinnerAdapter(Context context, List objects) {
-        super(context, android.R.layout.simple_spinner_item, objects);
+        super(context, android.R.layout.simple_spinner_dropdown_item, objects);
     }
 }
