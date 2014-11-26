@@ -123,9 +123,58 @@ public class BeaconHistory {
         return new Beacon(beacon.getProximityUUID(), beacon.getName(), beacon.getMacAddress(), beacon.getMajor(), beacon.getMinor(), avgMeasuredPower, avgRssi);
     }
 
+    /*
+        The simplest form of exp. moving average is given by
+        S(t) = α * X(t-1) + (1-α) * S(t-1)
+        where S(n) is a calculated exp. moving average
+        and X(n) is data retrieved in the list
+        and α is a weighted coefficient  0 < α < 1.
+
+        There is no formally correct procedure for choosing α.
+        Some will take 2/(Period + 1).
+
+        Since at this point we will already have a list
+        filtered by beacon, Period = List size
+    */
     private Beacon computeExpWAverage(List<Beacon> list) {
 
-        return null;
+        double alpha = 2 / (list.size() + 1);
+
+        int avgRssi;
+        int avgMeasuredPower;
+
+        avgRssi = (int) expWAverageRssi(list, alpha);
+        avgMeasuredPower = (int) expWAverageMeasuredPower(list, alpha);
+
+        Beacon beacon = list.get(0);
+
+        return new Beacon(beacon.getProximityUUID(), beacon.getName(), beacon.getMacAddress(), beacon.getMajor(), beacon.getMinor(),avgMeasuredPower, avgRssi);
+    }
+
+    private double expWAverageMeasuredPower(List<Beacon> list, double alpha) {
+        if (list.size() < 2) {
+            // The initial value by default is the last element of the list
+            return list.get(0).getMeasuredPower();
+        } else {
+            // We remove latest beacon of the list
+            Beacon head = list.remove(list.size());
+
+            // And we start recursion
+            return alpha * head.getMeasuredPower() + (1 - alpha) * expWAverageMeasuredPower(list, alpha);
+        }
+    }
+
+    private double expWAverageRssi(List<Beacon> list, double alpha) {
+        if (list.size() < 2) {
+            // The initial value by default is the last element of the list
+            return list.get(0).getRssi();
+        } else {
+            // We remove latest beacon of the list
+            Beacon head = list.remove(list.size());
+
+            // And we start recursion
+            return alpha * head.getRssi() + (1 - alpha) * expWAverageRssi(list, alpha);
+        }
     }
 
     private Beacon computeMedian(List<Beacon> list) {
