@@ -120,15 +120,7 @@ public class Home extends BaseActivity {
             }
         });
         filter_method.setSelection(BeaconHistory.FilterMethod.WAverage.ordinal(), true);
-        foregroundScanPeriod.setMinValue(50);
-        foregroundScanPeriod.setMaxValue(60 * 1000);
-        foregroundScanPeriod.setValue(BeaconMonitorService.DEFAULT_FOREGROUND_SCAN_PERIOD);
-        foregroundScanPeriod.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
-            @Override
-            public void onValueChange(NumberPicker numberPicker, int oldVal, int newVal) {
-                app.foregroundScanPeriod = newVal;
-            }
-        });
+        setNumberPicker(foregroundScanPeriod, 50, 60 * 1000, 50);
         switch_start.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -139,6 +131,23 @@ public class Home extends BaseActivity {
                 }
             }
         });
+    }
+
+    private void setNumberPicker(NumberPicker picker, final int min, int max, final int step) {
+        picker.setMinValue(min / step - 1);
+        picker.setMaxValue((max / step) - 1);
+        String[] valueSet = new String[max / min];
+        for (int i = min; i <= max; i += step) {
+            valueSet[(i / step) - 1] = Integer.toString(i);
+        }
+        picker.setDisplayedValues(valueSet);
+        picker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker numberPicker, int oldVal, int newVal) {
+                app.foregroundScanPeriod = min + newVal * step;
+            }
+        });
+        picker.setValue(BeaconMonitorService.DEFAULT_FOREGROUND_SCAN_PERIOD / step - 1);
     }
 
     @Override
