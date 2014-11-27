@@ -38,7 +38,7 @@ class Executor {
         if (beacons.isEmpty())
             return;
 
-        beaconHistory.addBeacon(beacons);
+        beaconHistory.addBeacons(beacons);
 
         // only execute when we have retrieved editor data
         if (editorWidgets == null) {

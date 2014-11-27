@@ -7,14 +7,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Thomaspiotrowski on 11/20/14.
  */
 public class BeaconHistory {
 
+    private static final long DEFAULT_BEACON_TIMEOUT = 30 * 1000;
     private int queueSize = 500;
 
     public boolean isEmpty() {
@@ -25,40 +28,80 @@ public class BeaconHistory {
         Average,
         ExpWAverage,
         WAverage,
-        Median;
+        Median
     }
 
     private EvictingQueue<Beacon> beaconHistory = EvictingQueue.create(queueSize);
+    private HashMap<String, Long> lastSeenStamp = new HashMap<String, Long>();
 
     public BeaconHistory() {
 
     }
 
-    public void addBeacon(List<Beacon> b) {
-        beaconHistory.addAll(b);
+    public void addBeacons(List<Beacon> beacons) {
+        beaconHistory.addAll(beacons);
+
+        // Keep track of last seen timestamp
+        long timestamp = new Date().getTime();
+        for (Beacon beacon : beacons) {
+            lastSeenStamp.put(getBeaconId(beacon), timestamp);
+        }
     }
 
     /**
      * Transform global list beaconHistory into per beacon map
+     * beacons must not have timed out
      *
      * @return
      */
     private HashMap<String, ArrayList<Beacon>> getBeaconMap() {
-
         HashMap<String, ArrayList<Beacon>> beaconMap = new HashMap<String, ArrayList<Beacon>>();
 
+        List<String> validBeaconIds = getValidBeaconIds();
+
         for (Beacon b : beaconHistory) {
+            String key = getBeaconId(b);
 
-            String key = b.getProximityUUID() + '|' + b.getMajor() + '|' + b.getMinor();
+            // beacon has not timeout
+            if (validBeaconIds.contains(key)) {
+                // create beacon list dynamically
+                if (!beaconMap.containsKey(key)) {
+                    beaconMap.put(key, new ArrayList<Beacon>());
+                }
+                ArrayList<Beacon> beaconList = beaconMap.get(key);
 
-            if (!beaconMap.containsKey(key)) {
-                beaconMap.put(key, new ArrayList<Beacon>());
+                beaconList.add(b);
             }
-            ArrayList<Beacon> beaconList = beaconMap.get(key);
-            beaconList.add(b);
         }
 
         return beaconMap;
+    }
+
+    /**
+     * Build a list of BeaconIds of beacons that are still alive
+     *
+     * @retur
+     */
+    private List<String> getValidBeaconIds() {
+        ArrayList<String> ids = new ArrayList<String>();
+        long timestamp = new Date().getTime();
+        for (Map.Entry<String, Long> entry : lastSeenStamp.entrySet()) {
+            if (timestamp - entry.getValue() <= DEFAULT_BEACON_TIMEOUT) {
+                ids.add(entry.getKey());
+            }
+        }
+        return ids;
+    }
+
+
+    /**
+     * Helper method to build the key identify a beacon with its UUID, major and minor
+     *
+     * @param b
+     * @return
+     */
+    private static String getBeaconId(Beacon b) {
+        return b.getProximityUUID() + '|' + b.getMajor() + '|' + b.getMinor();
     }
 
     /**
@@ -148,7 +191,7 @@ public class BeaconHistory {
 
         Beacon beacon = list.get(0);
 
-        return new Beacon(beacon.getProximityUUID(), beacon.getName(), beacon.getMacAddress(), beacon.getMajor(), beacon.getMinor(),avgMeasuredPower, avgRssi);
+        return new Beacon(beacon.getProximityUUID(), beacon.getName(), beacon.getMacAddress(), beacon.getMajor(), beacon.getMinor(), avgMeasuredPower, avgRssi);
     }
 
     private double expWAverageMeasuredPower(List<Beacon> list, double alpha) {
