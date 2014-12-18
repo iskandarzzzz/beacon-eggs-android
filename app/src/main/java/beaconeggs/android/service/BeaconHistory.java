@@ -180,14 +180,30 @@ public class BeaconHistory {
         filtered by beacon, Period = List size
     */
     private Beacon computeExpWAverage(List<Beacon> list) {
+        double beta = 1 - (2 / (list.size() + 1));
+        double coefficient;
 
-        double alpha = 2 / (list.size() + 1);
+        int avgRssi = 0;
+        int avgMeasuredPower = 0;
+        double denominator = 0;
 
-        int avgRssi;
-        int avgMeasuredPower;
+        List<Beacon> list_rssi = new ArrayList<Beacon>(list);
+        List<Beacon> list_measuredPower = new ArrayList<Beacon>(list);
 
-        avgRssi = (int) expWAverageRssi(list, alpha);
-        avgMeasuredPower = (int) expWAverageMeasuredPower(list, alpha);
+        int n = list.size() - 1;
+        for (int i = 0; i < list.size(); i++) {
+            coefficient = Math.pow(beta, n);
+            avgRssi += coefficient * list.get(i).getRssi();
+            avgMeasuredPower += coefficient * list.get(i).getMeasuredPower();
+            denominator += coefficient;
+            n--;
+        }
+
+        avgRssi /= denominator;
+        avgMeasuredPower /= denominator;
+
+        //avgRssi = (int) expWAverageRssi(list_rssi, alpha);
+        //avgMeasuredPower = (int) expWAverageMeasuredPower(list_measuredPower, alpha);
 
         Beacon beacon = list.get(0);
 
@@ -200,7 +216,7 @@ public class BeaconHistory {
             return list.get(0).getMeasuredPower();
         } else {
             // We remove latest beacon of the list
-            Beacon head = list.remove(list.size());
+            Beacon head = list.remove(list.size() - 1);
 
             // And we start recursion
             return alpha * head.getMeasuredPower() + (1 - alpha) * expWAverageMeasuredPower(list, alpha);
@@ -213,7 +229,7 @@ public class BeaconHistory {
             return list.get(0).getRssi();
         } else {
             // We remove latest beacon of the list
-            Beacon head = list.remove(list.size());
+            Beacon head = list.remove(list.size() - 1);
 
             // And we start recursion
             return alpha * head.getRssi() + (1 - alpha) * expWAverageRssi(list, alpha);
