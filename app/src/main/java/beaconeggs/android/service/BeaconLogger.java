@@ -53,7 +53,12 @@ public class BeaconLogger {
     }
 
     public void logLayoutBeacon(List<LayoutBeacon> layoutBeacons) throws IOException {
+
         byte[] data;
+
+        long timestamp = new Date().getTime();
+        byte[] prefix = (Long.toString(timestamp) + '|').getBytes();
+
         for (LayoutBeacon layoutBeacon : layoutBeacons) {
             data = layoutBeacon.toString().getBytes();
             Log.d(TAG, layoutBeacon.toString());
@@ -63,6 +68,10 @@ public class BeaconLogger {
 
     public void logComputedPoint(List<ComputedPoint> computedPoints) throws IOException {
         byte[] data;
+
+        long timestamp = new Date().getTime();
+        byte[] prefix = (Long.toString(timestamp) + '|').getBytes();
+        
         for (ComputedPoint computedPoint : computedPoints) {
             data = computedPoint.toString().getBytes();
             Log.d(TAG, computedPoint.toString());
