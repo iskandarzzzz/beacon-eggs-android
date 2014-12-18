@@ -11,6 +11,7 @@ import com.estimote.sdk.Beacon;
 import com.estimote.sdk.BeaconManager;
 import com.estimote.sdk.Region;
 
+import java.io.IOException;
 import java.util.List;
 
 import beaconeggs.android.App;
@@ -25,6 +26,7 @@ public class BeaconMonitorService extends Service {
     private ResolutionSelector resolutionSelector;
     private Executor executor;
     private BeaconManager beaconManager;
+    private BeaconLogger beaconLogger;
 
     @Override
     public void onCreate() {
@@ -35,6 +37,7 @@ public class BeaconMonitorService extends Service {
         resolutionSelector = new ResolutionSelector();
         executor = new Executor(resolutionSelector, app);
         beaconManager = new BeaconManager(this);
+        beaconLogger = new BeaconLogger(this);
 
         // Set scan period
 //        beaconManager.setBackgroundScanPeriod(10000, 0);
@@ -45,6 +48,12 @@ public class BeaconMonitorService extends Service {
             @Override
             public void onBeaconsDiscovered(Region region, List<Beacon> beacons) {
                 Log.d(TAG, "onBeaconsDiscovered: " + beacons.size());
+                try {
+                    beaconLogger.logBeacons(beacons);
+                } catch (IOException e) {
+                    Log.e(TAG, "Failed to write beacons to file");
+                    e.printStackTrace();
+                }
                 executor.addJob(beacons);
             }
         });
@@ -75,6 +84,7 @@ public class BeaconMonitorService extends Service {
         try {
             beaconManager.stopRanging(ALL_ESTIMOTE_BEACONS);
             beaconManager.disconnect();
+            beaconLogger.stopLogger();
         } catch (RemoteException e) {
             e.printStackTrace();
         }
