@@ -20,11 +20,7 @@ public class EditorLayout {
     }
 
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append('\n')
-                .append("name").append('\t').append(name).append('\n')
-                .append("wdgets").append('\t').append(widgets).append('\n');
-        return sb.toString();
+        return name;
     }
 
     public int getPxPerMeter() {
