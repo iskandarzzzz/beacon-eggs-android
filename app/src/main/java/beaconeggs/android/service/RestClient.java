@@ -9,6 +9,8 @@ import com.loopj.android.http.RequestParams;
 
 import org.apache.http.Header;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 
 import beaconeggs.core.Point;
@@ -48,5 +50,28 @@ public class RestClient {
                 Log.d(TAG, "onFailure");
             }
         });
+    }
+
+    public static void uploadBeaconLog(BeaconLogger logger) {
+        File logfile = logger.getFile();
+        RequestParams params = new RequestParams();
+
+        try {
+            params.put("logfile", logfile);
+
+            client.post(BASE_URL + "/log", params, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    Log.d(TAG, "logfile upload success");
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.d(TAG, "logfile upload failure");
+                }
+            });
+        } catch (FileNotFoundException e) {
+            Log.e(TAG, "FileNotFound: " + logger.getFile());
+        }
     }
 }

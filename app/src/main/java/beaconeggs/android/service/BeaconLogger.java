@@ -19,20 +19,23 @@ import beaconeggs.core.ComputedPoint;
  * Created by Thomaspiotrowski on 12/18/14.
  */
 public class BeaconLogger {
-    private static final String TAG = "+++++++BeaconLogger";
+    private static final String TAG = "BeaconLogger";
     public static final String FILENAME = "Beacon.log";
-    private File log;
     private OutputStream out;
+    private Context context;
 
     public BeaconLogger(Context context) {
-
-        log = new File(context.getExternalFilesDir(null), FILENAME);
+        this.context = context;
 
         try {
-            out = new FileOutputStream(log);
+            out = new FileOutputStream(getFile());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    public File getFile() {
+        return new File(context.getExternalFilesDir(null), FILENAME);
     }
 
     public void logBeacons(List<Beacon> beacons) throws IOException {
@@ -71,7 +74,7 @@ public class BeaconLogger {
 
         long timestamp = new Date().getTime();
         byte[] prefix = (Long.toString(timestamp) + '|').getBytes();
-        
+
         for (ComputedPoint computedPoint : computedPoints) {
             data = computedPoint.toString().getBytes();
             Log.d(TAG, computedPoint.toString());
@@ -85,7 +88,7 @@ public class BeaconLogger {
                 out.flush();
                 out.close();
             } catch (IOException e) {
-                Log.e(TAG, "Error while closing Beacons.log");
+                Log.e(TAG, "Error while closing file" + FILENAME);
             }
         }
     }

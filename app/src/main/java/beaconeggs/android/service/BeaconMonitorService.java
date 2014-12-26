@@ -84,7 +84,9 @@ public class BeaconMonitorService extends Service {
         try {
             beaconManager.stopRanging(ALL_ESTIMOTE_BEACONS);
             beaconManager.disconnect();
+
             beaconLogger.stopLogger();
+            RestClient.uploadBeaconLog(beaconLogger);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
