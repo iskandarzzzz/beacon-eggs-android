@@ -38,7 +38,7 @@ import beaconeggs.android.service.RestClient;
 import beaconeggs.core.ComputedPoint;
 
 
-public class Home extends BaseActivity {
+public class HomeActivity extends BaseActivity {
 
     private static final String TAG = "Home";
     BeaconMonitorService mService;
@@ -168,7 +168,7 @@ public class Home extends BaseActivity {
                 List<EditorLayout> editorLayouts = gson.fromJson(responseString, type);
                 app.editorLayouts = editorLayouts;
 
-                LayoutsSpinnerAdapter spinnerAdapter = new LayoutsSpinnerAdapter(Home.this, editorLayouts);
+                LayoutsSpinnerAdapter spinnerAdapter = new LayoutsSpinnerAdapter(HomeActivity.this, editorLayouts);
                 layouts.setAdapter(spinnerAdapter);
             }
         });
