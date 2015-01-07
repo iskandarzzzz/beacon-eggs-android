@@ -76,7 +76,7 @@ class Executor {
             }
 
             // send position to server
-            RestClient.postPosition(computedPoint, distancesToSend);
+            SocketIOClient.sendComputedPosition(computedPoint, distancesToSend);
         }
 
         isExecuting = false;

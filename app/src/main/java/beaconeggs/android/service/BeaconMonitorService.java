@@ -34,6 +34,7 @@ public class BeaconMonitorService extends Service {
 
         final App app = (App) getApplication();
 
+        SocketIOClient.connect();
         resolutionSelector = new ResolutionSelector();
         executor = new Executor(resolutionSelector, app);
         beaconManager = new BeaconManager(this);
@@ -87,6 +88,8 @@ public class BeaconMonitorService extends Service {
 
             beaconLogger.stopLogger();
             RestClient.uploadBeaconLog(beaconLogger);
+
+            SocketIOClient.disconnect();
         } catch (RemoteException e) {
             e.printStackTrace();
         }
