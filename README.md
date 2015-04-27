@@ -1,6 +1,6 @@
 # Beacon & Eggs - Android
 
-An Android application implementing positioning algorithms using [Beacon & Eggs - Core](https://bitbucket.org/beaconeggs/beacon-eggs-core) and [Beacon & Eggs - Server](https://bitbucket.org/beaconeggs/beacon-eggs-server).
+An Android application implementing positioning algorithms using [Beacon & Eggs - Core](https://github.com/whollacsek/beacon-eggs-core) and [Beacon & Eggs - Server](https://github.com/whollacsek/beacon-eggs-server).
 
 
 ## IDE Setup
