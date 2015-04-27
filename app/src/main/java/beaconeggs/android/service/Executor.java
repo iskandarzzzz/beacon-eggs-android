@@ -63,7 +63,6 @@ class Executor {
 
         if (type != null) {
             ComputedPoint computedPoint = type.compute();
-            Log.d("+++++++++++++++++++", "computedPoint: " + computedPoint);
 
             resolutionSelector.addComputedPoint(computedPoint);
             if (executorListener != null) {
@@ -87,14 +86,13 @@ class Executor {
 
         String distancesString = "";
         for (Beacon beacon : beacons) {
-            double distance = Utils.computeAccuracy(beacon);
-
-            // prepare distance string
-            distancesString += beacon.getMinor() + " distance:" + distance + "\n";
-
-            LayoutBeacon layoutBeacon = makeLayoutBeacon(beacon, distance);
-            if (layoutBeacon != null)
+            LayoutBeacon layoutBeacon = makeLayoutBeacon(beacon);
+            if (layoutBeacon != null) {
                 layoutBeacons.add(layoutBeacon);
+
+                // prepare distance string
+                distancesString += beacon.getMinor() + " distance:" + layoutBeacon.getDistance() + "\n";
+            }
         }
 
         // show distances on activity
@@ -109,10 +107,9 @@ class Executor {
      * else null
      *
      * @param beacon
-     * @param distance
      * @return
      */
-    private LayoutBeacon makeLayoutBeacon(Beacon beacon, double distance) {
+    private LayoutBeacon makeLayoutBeacon(Beacon beacon) {
         LayoutBeacon layoutBeacon = null;
 
         for (EditorWidget editorWidget : editorWidgets) {
@@ -123,6 +120,7 @@ class Executor {
                 String uuid = editorBeacon.getUuid();
                 int major = editorBeacon.getMajor();
                 int minor = editorBeacon.getMinor();
+                double distance = Utils.computeAccuracy(beacon);
 
                 boolean sameBeacon = (beacon.getProximityUUID().equalsIgnoreCase(uuid) && beacon.getMajor() == major && beacon.getMinor() == minor);
                 if (sameBeacon) {
