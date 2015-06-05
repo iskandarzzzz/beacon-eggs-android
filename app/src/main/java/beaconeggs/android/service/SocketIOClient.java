@@ -10,6 +10,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
+import beaconeggs.android.App;
 import beaconeggs.core.Point;
 
 /**
@@ -37,6 +38,7 @@ public class SocketIOClient {
         try {
             obj.put("x", point.getX());
             obj.put("y", point.getY());
+            obj.put("userId", App.getUserId());
 
             JSONObject distances = new JSONObject();
             for (Map.Entry<Integer, Double> integerDoubleEntry : distancesToSend.entrySet()) {
