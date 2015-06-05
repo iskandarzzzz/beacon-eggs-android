@@ -1,5 +1,7 @@
 package beaconeggs.android;
 
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -41,8 +43,12 @@ import beaconeggs.core.ComputedPoint;
 public class HomeActivity extends BaseActivity {
 
     private static final String TAG = "Home";
+    private static final int ENABLE_BT_REQUEST_CODE = 1;
     BeaconMonitorService mService;
     Boolean mBound = false;
+    private TextView computed_position;
+    private TextView distances;
+    private TextView processedDistances;
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -73,9 +79,6 @@ public class HomeActivity extends BaseActivity {
             mBound = false;
         }
     };
-    private TextView computed_position;
-    private TextView distances;
-    private TextView processedDistances;
     private Spinner layouts;
     private Spinner filter_method;
     private NumberPicker foregroundScanPeriod;
@@ -154,6 +157,8 @@ public class HomeActivity extends BaseActivity {
     protected void onStart() {
         super.onStart();
 
+        enableBluetooth();
+
         RestClient.getLayouts(new TextHttpResponseHandler() {
             @Override
             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
@@ -177,7 +182,22 @@ public class HomeActivity extends BaseActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        stopBeaconManagerService();
+        //stopBeaconManagerService();
+    }
+
+    private void enableBluetooth() {
+        final Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        startActivityForResult(intent, ENABLE_BT_REQUEST_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == ENABLE_BT_REQUEST_CODE && resultCode == Activity.RESULT_CANCELED) {
+            finish();
+            return;
+        }
+
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private void startBeaconManagerService() {
