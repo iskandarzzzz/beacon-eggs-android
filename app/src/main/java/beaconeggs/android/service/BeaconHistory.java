@@ -1,6 +1,5 @@
 package beaconeggs.android.service;
 
-import com.estimote.sdk.Beacon;
 import com.google.common.collect.EvictingQueue;
 
 import java.lang.reflect.InvocationTargetException;
@@ -31,19 +30,19 @@ public class BeaconHistory {
         Median
     }
 
-    private EvictingQueue<Beacon> beaconHistory = EvictingQueue.create(queueSize);
+    private EvictingQueue<LayoutBeacon> beaconHistory = EvictingQueue.create(queueSize);
     private HashMap<String, Long> lastSeenStamp = new HashMap<String, Long>();
 
     public BeaconHistory() {
 
     }
 
-    public void addBeacons(List<Beacon> beacons) {
+    public void addBeacons(List<LayoutBeacon> beacons) {
         beaconHistory.addAll(beacons);
 
         // Keep track of last seen timestamp
         long timestamp = new Date().getTime();
-        for (Beacon beacon : beacons) {
+        for (LayoutBeacon beacon : beacons) {
             lastSeenStamp.put(getBeaconId(beacon), timestamp);
         }
     }
@@ -54,21 +53,21 @@ public class BeaconHistory {
      *
      * @return
      */
-    private HashMap<String, ArrayList<Beacon>> getBeaconMap() {
-        HashMap<String, ArrayList<Beacon>> beaconMap = new HashMap<String, ArrayList<Beacon>>();
+    private HashMap<String, ArrayList<LayoutBeacon>> getBeaconMap() {
+        HashMap<String, ArrayList<LayoutBeacon>> beaconMap = new HashMap<String, ArrayList<LayoutBeacon>>();
 
         List<String> validBeaconIds = getValidBeaconIds();
 
-        for (Beacon b : beaconHistory) {
+        for (LayoutBeacon b : beaconHistory) {
             String key = getBeaconId(b);
 
             // beacon has not timeout
             if (validBeaconIds.contains(key)) {
                 // create beacon list dynamically
                 if (!beaconMap.containsKey(key)) {
-                    beaconMap.put(key, new ArrayList<Beacon>());
+                    beaconMap.put(key, new ArrayList<LayoutBeacon>());
                 }
-                ArrayList<Beacon> beaconList = beaconMap.get(key);
+                ArrayList<LayoutBeacon> beaconList = beaconMap.get(key);
 
                 beaconList.add(b);
             }
@@ -100,8 +99,8 @@ public class BeaconHistory {
      * @param b
      * @return
      */
-    private static String getBeaconId(Beacon b) {
-        return b.getProximityUUID() + '|' + b.getMajor() + '|' + b.getMinor();
+    private static String getBeaconId(LayoutBeacon b) {
+        return b.getUuid() + '|' + b.getMajor() + '|' + b.getMinor();
     }
 
     /**
@@ -110,15 +109,15 @@ public class BeaconHistory {
      * @param m
      * @return
      */
-    public List<Beacon> getBeacons(FilterMethod m) {
-        HashMap<String, ArrayList<Beacon>> beaconMap = getBeaconMap();
-        List<Beacon> beacons = new ArrayList<Beacon>();
+    public List<LayoutBeacon> getBeacons(FilterMethod m) {
+        HashMap<String, ArrayList<LayoutBeacon>> beaconMap = getBeaconMap();
+        List<LayoutBeacon> beacons = new ArrayList<LayoutBeacon>();
 
-        for (ArrayList<Beacon> sameBeacons : beaconMap.values()) {
+        for (ArrayList<LayoutBeacon> sameBeacons : beaconMap.values()) {
             Method method;
             try {
                 method = this.getClass().getDeclaredMethod("compute" + m.toString(), List.class);
-                Beacon filteredBeacon = (Beacon) method.invoke(this, sameBeacons);
+                LayoutBeacon filteredBeacon = (LayoutBeacon) method.invoke(this, sameBeacons);
                 beacons.add(filteredBeacon);
             } catch (NoSuchMethodException e) {
                 e.printStackTrace();
@@ -131,23 +130,23 @@ public class BeaconHistory {
         return beacons;
     }
 
-    private Beacon computeAverage(List<Beacon> list) {
+    private LayoutBeacon computeAverage(List<LayoutBeacon> list) {
 
         int avgRssi = 0;
         int avgMeasuredPower = 0;
-        for (Beacon beacon : list) {
+        for (LayoutBeacon beacon : list) {
             avgRssi += beacon.getRssi();
             avgMeasuredPower += beacon.getMeasuredPower();
         }
         avgRssi /= list.size();
         avgMeasuredPower /= list.size();
 
-        Beacon beacon = list.get(0);
+        LayoutBeacon beacon = list.get(0);
 
-        return new Beacon(beacon.getProximityUUID(), beacon.getName(), beacon.getMacAddress(), beacon.getMajor(), beacon.getMinor(), avgMeasuredPower, avgRssi);
+        return new LayoutBeacon(beacon, avgMeasuredPower, avgRssi);
     }
 
-    private Beacon computeWAverage(List<Beacon> list) {
+    private LayoutBeacon computeWAverage(List<LayoutBeacon> list) {
         int avgRssi = 0;
         int avgMeasuredPower = 0;
         int denominator = 0;
@@ -161,9 +160,9 @@ public class BeaconHistory {
         avgRssi /= denominator;
         avgMeasuredPower /= denominator;
 
-        Beacon beacon = list.get(0);
+        LayoutBeacon beacon = list.get(0);
 
-        return new Beacon(beacon.getProximityUUID(), beacon.getName(), beacon.getMacAddress(), beacon.getMajor(), beacon.getMinor(), avgMeasuredPower, avgRssi);
+        return new LayoutBeacon(beacon, avgMeasuredPower, avgRssi);
     }
 
     /*
@@ -179,7 +178,7 @@ public class BeaconHistory {
         Since at this point we will already have a list
         filtered by beacon, Period = List size
     */
-    private Beacon computeExpWAverage(List<Beacon> list) {
+    private LayoutBeacon computeExpWAverage(List<LayoutBeacon> list) {
         double beta = 1 - (2 / (list.size() + 1));
         double coefficient;
 
@@ -187,8 +186,8 @@ public class BeaconHistory {
         int avgMeasuredPower = 0;
         double denominator = 0;
 
-        List<Beacon> list_rssi = new ArrayList<Beacon>(list);
-        List<Beacon> list_measuredPower = new ArrayList<Beacon>(list);
+        List<LayoutBeacon> list_rssi = new ArrayList<LayoutBeacon>(list);
+        List<LayoutBeacon> list_measuredPower = new ArrayList<LayoutBeacon>(list);
 
         int n = list.size() - 1;
         for (int i = 0; i < list.size(); i++) {
@@ -205,38 +204,38 @@ public class BeaconHistory {
         //avgRssi = (int) expWAverageRssi(list_rssi, alpha);
         //avgMeasuredPower = (int) expWAverageMeasuredPower(list_measuredPower, alpha);
 
-        Beacon beacon = list.get(0);
+        LayoutBeacon beacon = list.get(0);
 
-        return new Beacon(beacon.getProximityUUID(), beacon.getName(), beacon.getMacAddress(), beacon.getMajor(), beacon.getMinor(), avgMeasuredPower, avgRssi);
+        return new LayoutBeacon(beacon, avgMeasuredPower, avgRssi);
     }
 
-    private double expWAverageMeasuredPower(List<Beacon> list, double alpha) {
+    private double expWAverageMeasuredPower(List<LayoutBeacon> list, double alpha) {
         if (list.size() < 2) {
             // The initial value by default is the last element of the list
             return list.get(0).getMeasuredPower();
         } else {
             // We remove latest beacon of the list
-            Beacon head = list.remove(list.size() - 1);
+            LayoutBeacon head = list.remove(list.size() - 1);
 
             // And we start recursion
             return alpha * head.getMeasuredPower() + (1 - alpha) * expWAverageMeasuredPower(list, alpha);
         }
     }
 
-    private double expWAverageRssi(List<Beacon> list, double alpha) {
+    private double expWAverageRssi(List<LayoutBeacon> list, double alpha) {
         if (list.size() < 2) {
             // The initial value by default is the last element of the list
             return list.get(0).getRssi();
         } else {
             // We remove latest beacon of the list
-            Beacon head = list.remove(list.size() - 1);
+            LayoutBeacon head = list.remove(list.size() - 1);
 
             // And we start recursion
             return alpha * head.getRssi() + (1 - alpha) * expWAverageRssi(list, alpha);
         }
     }
 
-    private Beacon computeMedian(List<Beacon> list) {
+    private LayoutBeacon computeMedian(List<LayoutBeacon> list) {
 
         int medianRssi;
         int medianMeasuredPower;
@@ -262,8 +261,8 @@ public class BeaconHistory {
             medianMeasuredPower = tabMeasuredPower[lowerBound];
         }
 
-        Beacon beacon = list.get(0);
+        LayoutBeacon beacon = list.get(0);
 
-        return new Beacon(beacon.getProximityUUID(), beacon.getName(), beacon.getMacAddress(), beacon.getMajor(), beacon.getMinor(), medianMeasuredPower, medianRssi);
+        return new LayoutBeacon(beacon, medianMeasuredPower, medianRssi);
     }
 }

@@ -20,17 +20,29 @@ class LayoutBeacon {
     // Computed
     private final double distance;
 
-    public LayoutBeacon(Beacon beacon, Point pos, double radius, double distance) {
-        uuid = beacon.getProximityUUID();
-        major = beacon.getMajor();
-        minor = beacon.getMinor();
-        name = beacon.getName();
-        macAddress = beacon.getMacAddress();
-        measuredPower = beacon.getMeasuredPower();
-        rssi = beacon.getRssi();
+    public LayoutBeacon(String uuid, int major, int minor, String name, String macAddress, int measuredPower, int rssi, Point pos, double radius, double distance) {
+        this.uuid = uuid;
+        this.major = major;
+        this.minor = minor;
+        this.name = name;
+        this.macAddress = macAddress;
+        this.measuredPower = measuredPower;
+        this.rssi = rssi;
         this.pos = pos;
         this.radius = radius;
         this.distance = distance;
+    }
+
+    public LayoutBeacon(Beacon beacon, double distance) {
+        this(beacon.getProximityUUID(), beacon.getMajor(), beacon.getMinor(), beacon.getName(), beacon.getMacAddress(), beacon.getMeasuredPower(), beacon.getRssi(), null, 0, distance);
+    }
+
+    public LayoutBeacon(LayoutBeacon beacon, int measuredPower, int rssi) {
+        this(beacon.getUuid(), beacon.getMajor(), beacon.getMinor(), beacon.getName(), beacon.getMacAddress(), measuredPower, rssi, beacon.getPos(), beacon.getRadius(), beacon.getDistance());
+    }
+
+    public LayoutBeacon(LayoutBeacon beacon, Point pos, double radius) {
+        this(beacon.getUuid(), beacon.getMajor(), beacon.getMinor(), beacon.getName(), beacon.getMacAddress(), beacon.getMeasuredPower(), beacon.getRssi(), pos, radius, beacon.getDistance());
     }
 
     public double getDistance() {
@@ -47,6 +59,26 @@ class LayoutBeacon {
 
     public double getRadius() {
         return radius;
+    }
+
+    public int getMajor() {
+        return major;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getMacAddress() {
+        return macAddress;
+    }
+
+    public int getMeasuredPower() {
+        return measuredPower;
+    }
+
+    public int getRssi() {
+        return rssi;
     }
 
     @Override

@@ -2,9 +2,6 @@ package beaconeggs.android.service;
 
 import android.util.Log;
 
-import com.estimote.sdk.Beacon;
-import com.estimote.sdk.Utils;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +31,7 @@ class Executor {
         this.executorListener = executorListener;
     }
 
-    public void addJob(List<Beacon> beacons) {
+    public void addJob(List<LayoutBeacon> beacons) {
         if (beacons.isEmpty())
             return;
 
@@ -56,9 +53,9 @@ class Executor {
             return;
 
         isExecuting = true;
-        List<Beacon> beacons = beaconHistory.getBeacons(app.filterMethod);
+        List<LayoutBeacon> beacons = beaconHistory.getBeacons(app.filterMethod);
 
-        List<LayoutBeacon> layoutBeacons = processBeacons(beacons);
+        List<LayoutBeacon> layoutBeacons = filterBeacons(beacons);
         ResolutionType type = resolutionSelector.selectType(layoutBeacons);
 
         if (type != null) {
@@ -81,17 +78,17 @@ class Executor {
         isExecuting = false;
     }
 
-    private List<LayoutBeacon> processBeacons(List<Beacon> beacons) {
+    private List<LayoutBeacon> filterBeacons(List<LayoutBeacon> beacons) {
         List<LayoutBeacon> layoutBeacons = new ArrayList<LayoutBeacon>(beacons.size());
 
         String distancesString = "";
-        for (Beacon beacon : beacons) {
-            LayoutBeacon layoutBeacon = makeLayoutBeacon(beacon);
-            if (layoutBeacon != null) {
-                layoutBeacons.add(layoutBeacon);
+        for (LayoutBeacon beacon : beacons) {
+            LayoutBeacon mergedBeacon = mergeWithEditorBeacon(beacon);
+            if (mergedBeacon != null) {
+                layoutBeacons.add(mergedBeacon);
 
                 // prepare distance string
-                distancesString += beacon.getMinor() + " distance:" + layoutBeacon.getDistance() + "\n";
+                distancesString += beacon.getMinor() + " distance:" + mergedBeacon.getDistance() + "\n";
             }
         }
 
@@ -109,7 +106,7 @@ class Executor {
      * @param beacon
      * @return
      */
-    private LayoutBeacon makeLayoutBeacon(Beacon beacon) {
+    private LayoutBeacon mergeWithEditorBeacon(LayoutBeacon beacon) {
         LayoutBeacon layoutBeacon = null;
 
         for (EditorWidget editorWidget : editorWidgets) {
@@ -120,12 +117,10 @@ class Executor {
                 String uuid = editorBeacon.getUuid();
                 int major = editorBeacon.getMajor();
                 int minor = editorBeacon.getMinor();
-                double distance = Utils.computeAccuracy(beacon);
 
-                boolean sameBeacon = (beacon.getProximityUUID().equalsIgnoreCase(uuid) && beacon.getMajor() == major && beacon.getMinor() == minor);
+                boolean sameBeacon = (beacon.getUuid().equalsIgnoreCase(uuid) && beacon.getMajor() == major && beacon.getMinor() == minor);
                 if (sameBeacon) {
-//                    Log.d("==================", "distance:" + distance);
-                    layoutBeacon = new LayoutBeacon(beacon, editorBeacon.getPos(app.editorLayout.getPxPerMeter()), editorBeacon.getRadius() / app.editorLayout.getPxPerMeter(), distance);
+                    layoutBeacon = new LayoutBeacon(beacon, editorBeacon.getPos(app.editorLayout.getPxPerMeter()), editorBeacon.getRadius() / app.editorLayout.getPxPerMeter());
                 }
             }
         }
