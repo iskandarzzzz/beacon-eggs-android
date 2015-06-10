@@ -55,7 +55,7 @@ public class BeaconMonitorService extends Service {
         // Reco
         recoBeaconManager = RECOBeaconManager.getInstance(this);
         recoBeaconManager.setScanPeriod(app.foregroundScanPeriod);
-        recoBeaconManager.setSleepPeriod(0);
+        //recoBeaconManager.setSleepPeriod(0);
         recoBeaconManager.setRangingListener(new RECORangingListener() {
             @Override
             public void didRangeBeaconsInRegion(Collection<RECOBeacon> collection, RECOBeaconRegion recoBeaconRegion) {

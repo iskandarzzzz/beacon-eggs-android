@@ -20,7 +20,7 @@ public class App extends Application {
     // Retrieve from server
     public List<EditorLayout> editorLayouts;
     // Set by respective Spinner
-    public EditorLayout editorLayout;
+    public static EditorLayout editorLayout;
     public BeaconHistory.FilterMethod filterMethod;
     // Set by NumberPicker
     public long foregroundScanPeriod = BeaconMonitorService.DEFAULT_FOREGROUND_SCAN_PERIOD;
@@ -42,7 +42,7 @@ public class App extends Application {
         String userId = pref.getString("userId", null);
         if (userId == null) {
             userId = UUID.randomUUID().toString();
-            pref.edit().putString("userId", userId);
+            pref.edit().putString("userId", userId).commit();
         }
 
         return userId;

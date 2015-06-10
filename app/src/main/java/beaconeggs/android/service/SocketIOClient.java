@@ -2,15 +2,19 @@ package beaconeggs.android.service;
 
 import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
+import com.google.gson.Gson;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import beaconeggs.android.App;
+import beaconeggs.core.ComputedPoint;
 import beaconeggs.core.Point;
 
 /**
@@ -22,7 +26,7 @@ public class SocketIOClient {
 
     public static void connect() {
         try {
-            socket = IO.socket("http://beacon.egg.ovh");
+            socket = IO.socket(RestClient.BASE_URL);
             socket.connect();
         } catch (URISyntaxException e) {
             e.printStackTrace();
@@ -39,6 +43,7 @@ public class SocketIOClient {
             obj.put("x", point.getX());
             obj.put("y", point.getY());
             obj.put("userId", App.getUserId());
+            obj.put("layoutName", App.editorLayout.getName());
 
             JSONObject distances = new JSONObject();
             for (Map.Entry<Integer, Double> integerDoubleEntry : distancesToSend.entrySet()) {
@@ -54,5 +59,22 @@ public class SocketIOClient {
 
     private static void emit(String event, JSONObject object) {
         if (socket.connected()) socket.emit(event, object);
+    }
+
+    public static void sendMobileBeacons(ComputedPoint point, List<LayoutBeacon> mobileBeacons) {
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("x", point.getX());
+            obj.put("y", point.getY());
+            obj.put("userId", App.getUserId());
+            obj.put("layoutName", App.editorLayout.getName());
+
+            JSONArray beacons = new JSONArray(new Gson().toJson(mobileBeacons));
+            obj.put("mobileBeacons", beacons);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        emit("mobileBeacons", obj);
     }
 }

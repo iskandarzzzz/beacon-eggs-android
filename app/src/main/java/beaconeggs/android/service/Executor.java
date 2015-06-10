@@ -80,6 +80,7 @@ class Executor {
 
     private List<LayoutBeacon> filterBeacons(List<LayoutBeacon> beacons) {
         List<LayoutBeacon> layoutBeacons = new ArrayList<LayoutBeacon>(beacons.size());
+        List<LayoutBeacon> mobileBeacons = new ArrayList<LayoutBeacon>(beacons.size());
 
         String distancesString = "";
         for (LayoutBeacon beacon : beacons) {
@@ -89,8 +90,15 @@ class Executor {
 
                 // prepare distance string
                 distancesString += beacon.getMinor() + " distance:" + mergedBeacon.getDistance() + "\n";
+            } else {
+                mobileBeacons.add(beacon);
+
             }
         }
+
+        //
+        if (resolutionSelector.getLastComputedPoint() != null)
+            SocketIOClient.sendMobileBeacons(resolutionSelector.getLastComputedPoint(), mobileBeacons);
 
         // show distances on activity
         executorListener.onDistance(distancesString);

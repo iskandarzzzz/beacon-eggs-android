@@ -13,6 +13,7 @@ import beaconeggs.core.ThreeBorderN;
 class ResolutionSelector {
 
     private EvictingQueue<ComputedPoint> computedPoints = EvictingQueue.create(100);
+    private ComputedPoint lastComputedPoints;
     private Class<ResolutionType> forcedType = null;
 
     public ResolutionType selectType(List<LayoutBeacon> beacons) {
@@ -50,6 +51,11 @@ class ResolutionSelector {
 
     public void addComputedPoint(ComputedPoint point) {
         computedPoints.add(point);
+        lastComputedPoints = point;
+    }
+
+    public ComputedPoint getLastComputedPoint() {
+       return lastComputedPoints;
     }
 
     public void useType(Class<ResolutionType> c) {
