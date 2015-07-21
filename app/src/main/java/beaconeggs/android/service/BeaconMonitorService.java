@@ -61,7 +61,9 @@ public class BeaconMonitorService extends Service {
             public void didRangeBeaconsInRegion(Collection<RECOBeacon> collection, RECOBeaconRegion recoBeaconRegion) {
                 ArrayList<LayoutBeacon> convertedBeacons = new ArrayList<LayoutBeacon>(collection.size());
                 for (RECOBeacon beacon : collection) {
-                    convertedBeacons.add(new LayoutBeacon(Utils.normalizeProximityUUID(beacon.getProximityUuid()), beacon.getMajor(), beacon.getMinor(), "RECO", "", beacon.getTxPower(), beacon.getRssi(), null, 0, beacon.getAccuracy()));
+                    Beacon b = new Beacon(Utils.normalizeProximityUUID(beacon.getProximityUuid()), "RECO", "", beacon.getMajor(), beacon.getMinor(), beacon.getTxPower(), beacon.getRssi());
+                    double distance = Utils.computeAccuracy(b);
+                    convertedBeacons.add(new LayoutBeacon(b, distance));
                 }
 
                 executor.addJob(convertedBeacons);
